@@ -28,7 +28,7 @@
             background-image: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
         }
 
-        /* Start Overlay (الحل الجذري للموسيقى) */
+        /* شاشة البداية (Start Overlay) */
         #start-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 3000;
@@ -51,9 +51,9 @@
             direction: ltr; 
         }
 
-        /* Login Screen */
+        /* شاشة الباسورد */
         #login-screen {
-            display: none; /* مخفي لحد ما ندوس بدء */
+            display: none; 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 2000;
             flex-direction: column; justify-content: center; align-items: center;
@@ -73,7 +73,24 @@
             animation: fadeIn 2s ease-in;
         }
 
-        /* Main Content */
+        /* زرار الموسيقى اليدوي */
+        .music-fix-btn {
+            margin-top: 20px;
+            background: transparent;
+            border: 1px dashed #555;
+            color: #555;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .music-fix-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* المحتوى الرئيسي */
         .container {
             display: none;
             width: 95%; max-width: 600px; margin: 20px auto;
@@ -126,7 +143,6 @@
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 10px var(--primary-color); } 50% { transform: scale(1.05); box-shadow: 0 0 25px var(--primary-color); } 100% { transform: scale(1); box-shadow: 0 0 10px var(--primary-color); } }
         
-        /* Custom SweetAlert */
         div:where(.swal2-container) div:where(.swal2-popup) {
             background: #1a1a1a !important; border: 1px solid #d4af37 !important; color: #fff !important;
         }
@@ -150,6 +166,10 @@
         <p class="hint-text">تلميح: الباسورد هو يوم عيد ميلادك (رقمين) 😉🎂</p>
         
         <p id="error-msg" style="color: #ff4d4d; margin-top: 15px; display: none;">Wrong Password!</p>
+
+        <button class="music-fix-btn" onclick="forcePlayMusic()">
+            [ 🔇 اضغطي هنا لو الصوت مش شغال ]
+        </button>
     </div>
 
     <div class="container" id="main-content">
@@ -201,14 +221,23 @@
     </div>
 
     <script>
-        // --- 0. Start Experience (تشغيل الموسيقى) ---
+        // --- 0. Start Experience ---
         function startExperience() {
-            const music = document.getElementById('bg-music');
-            music.volume = 0.5;
-            music.play().catch(e => console.log("Audio failed:", e));
-            
+            forcePlayMusic(); // محاولة التشغيل عند الضغط
             document.getElementById('start-overlay').style.display = 'none';
             document.getElementById('login-screen').style.display = 'flex';
+        }
+
+        // --- دالة تشغيل الموسيقى اليدوية ---
+        function forcePlayMusic() {
+            const music = document.getElementById('bg-music');
+            music.volume = 0.5;
+            music.play().then(() => {
+                console.log("Music started");
+            }).catch(e => {
+                console.log("Audio failed:", e);
+                // لو فشل ممكن نظهر تنبيه خفيف (اختياري)
+            });
         }
 
         // --- 1. Timer Logic (September 1, 2024) ---
@@ -217,7 +246,6 @@
         setInterval(function() {
             const now = new Date().getTime();
             const distance = now - startDate;
-
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -258,13 +286,16 @@
             requestAnimationFrame(animateCanvas);
         }
 
-        // --- 3. Login Logic (Password = 17) ---
+        // --- 3. Login Logic ---
         const passwordInput = document.getElementById('password');
 
         passwordInput.addEventListener('keyup', function(e) {
-            // الباسورد هنا بقى 17
-            if (e.key === 'Enter' || this.value === '17') {
-                if (this.value === '17') {
+            
+            // 🔴 الباسورد هنا: 17
+            const correctPass = '17'; 
+
+            if (e.key === 'Enter' || this.value === correctPass) {
+                if (this.value === correctPass) {
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
                     launchConfetti(); 
@@ -278,189 +309,10 @@
                         background: '#1a1a1a', color: '#fff'
                     });
                 } else {
-                    // لو كتبت رقم غلط بس مش 17
                     if (this.value.length >= 2) {
                         document.getElementById('error-msg').style.display = 'block';
                         this.value = '';
                     }
-                }
-            }
-        });
-
-        // --- 4. Prank Button ---
-        const btn = document.getElementById('no-btn');
-        const phrases = ["مش هتلحقيني 😜", "إنسي 😂", "بعيدة أوي 🐢", "مش النهاردة 🏃‍♀️"];
-        function moveButton() {
-            btn.innerText = phrases[Math.floor(Math.random() * phrases.length)];
-            const x = Math.random() * (window.innerWidth - 150);
-            const y = Math.random() * (window.innerHeight - 50);
-            btn.style.position = 'fixed'; btn.style.left = x+'px'; btn.style.top = y+'px';
-        }
-
-        function celebrate() {
-            launchConfetti();
-            Swal.fire({
-                title: 'مبروووك! 💍',
-                text: 'ربنا يفرح قلبك دايماً.. ومستني دعوة الفرح! 😉',
-                icon: 'success',
-                confirmButtonText: 'حاضر',
-                background: '#1a1a1a', color: '#fff', confirmButtonColor: '#d4af37'
-            });
-        }
-    </script>
-<body>
-</html>        .btn-yes { background: var(--primary-color); color: #000; box-shadow: 0 0 15px var(--primary-color); }
-        .btn-yes:hover { transform: scale(1.1); }
-        .btn-no { background: transparent; border: 2px solid #ff4d4d; color: #ff4d4d; position: relative; }
-
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        /* Confetti */
-        #canvas-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        
-        /* Custom SweetAlert */
-        div:where(.swal2-container) div:where(.swal2-popup) {
-            background: #1a1a1a !important; border: 1px solid #d4af37 !important; color: #fff !important;
-        }
-    </style>
-</head>
-<body onclick="playMusic()">
-
-    <audio id="bg-music" loop> <source src="song.mp3" type="audio/mpeg"> </audio>
-    <canvas id="canvas-layer"></canvas>
-
-    <div id="login-screen">
-        <h2 class="terminal-text" style="font-size: 3rem;">🔒</h2>
-        <h3 class="terminal-text">SECURITY CHECK</h3>
-        <p style="color: #888; margin-top: 10px;">Enter Target Name:</p>
-        <input type="password" id="password" class="input-box" placeholder="Manoosh" autofocus>
-        <p id="error-msg" style="color: #ff4d4d; margin-top: 15px; display: none;">ACCESS DENIED</p>
-    </div>
-
-    <div class="container" id="main-content">
-        
-        <h1 style="color: var(--primary-color); margin-bottom: 20px; font-size: 2rem; text-shadow: 0 0 10px #d4af37;">
-            ✨ Queen Manoosh ✨
-        </h1>
-
-        <div class="photos-wrapper">
-            <div class="photo-card">
-                <img src="img1.jpg" alt="Photo 1">
-                <p class="caption">أجمل ضحكة في الدنيا ✨</p>
-            </div>
-            <div class="photo-card">
-                <img src="img2.jpg" alt="Photo 2">
-                <p class="caption">أطيب قلب عرفته 🤍</p>
-            </div>
-        </div>
-
-        <div class="timer-box">
-            <div class="time-unit"><span class="time-val" id="days">00</span><span class="time-label">Days</span></div>
-            <div class="time-unit"><span class="time-val" id="hours">00</span><span class="time-label">Hours</span></div>
-            <div class="time-unit"><span class="time-val" id="minutes">00</span><span class="time-label">Mins</span></div>
-            <div class="time-unit"><span class="time-val" id="seconds">00</span><span class="time-label">Secs</span></div>
-        </div>
-        <p style="text-align: center; margin-top: -20px; margin-bottom: 20px; color: #888; font-size: 0.9rem;">
-            عداد الأيام الحلوة من يوم ما عرفتك ⏳
-        </p>
-
-        <div class="message-box">
-            <h2>💌 رسالة من القلب</h2>
-            <div id="typed-text">
-                <p>يا أغلى منووش في الدنيا..</p>
-                <p>ألف مليون مبروك مقدماً يا "أختي" الغالية، وربنا يتمملك على خير ويفرح قلبك.</p>
-                <p>عايز أقولك إنك بجد شخصية نادرة، وتستاهلي كل حاجة حلوة في الدنيا. الخطوة دي بداية لحياة جديدة مليانة سعادة بإذن الله.</p>
-                <p>مهما كبرنا ومسؤولياتنا زادت، هتفضلي في مقام أختي اللي بخاف عليها وبفرح لفرحها.</p>
-                <p>ربنا يسعدك، ويبعد عنك أي شر، ويجعل أيامك كلها أعياد وفرح.</p>
-                <p>وطبعاً مش محتاج أقولك.. العريس ده محظوظ جداً إنه فاز بيكي! 😉</p>
-                <br>
-                <p style="font-weight: bold; color: var(--primary-color);">(أخوكي عمار - Cyber Brother)</p>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button class="btn btn-yes" onclick="celebrate()">آمين يارب 🤲</button>
-            <button class="btn btn-no" id="no-btn" onmouseover="moveButton()" onclick="moveButton()">مش هعزمك 🏃‍♀️</button>
-        </div>
-
-    </div>
-
-    <script>
-        // --- 1. Timer Logic (Updated Date) ---
-        // تم التعديل هنا ليكون 1 سبتمبر 2024
-        const startDate = new Date("September 1, 2024 00:00:00").getTime(); 
-
-        setInterval(function() {
-            const now = new Date().getTime();
-            const distance = now - startDate;
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("days").innerText = days;
-            document.getElementById("hours").innerText = hours;
-            document.getElementById("minutes").innerText = minutes;
-            document.getElementById("seconds").innerText = seconds;
-        }, 1000);
-
-        // --- 2. Canvas Effects ---
-        const canvas = document.getElementById("canvas-layer");
-        const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = [];
-        const emojis = ['💍', '🤍', '✨', '🎉'];
-
-        function launchConfetti() {
-            particles = [];
-            for(let i=0; i<60; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
-                    speed: Math.random() * 3 + 2, char: emojis[Math.floor(Math.random() * emojis.length)]
-                });
-            }
-            animateCanvas();
-        }
-
-        function animateCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "20px Arial";
-            particles.forEach((p, i) => {
-                p.y += p.speed;
-                ctx.fillText(p.char, p.x, p.y);
-                if (p.y > canvas.height) particles[i].y = -10;
-            });
-            requestAnimationFrame(animateCanvas);
-        }
-
-        // --- 3. Login Logic ---
-        const passwordInput = document.getElementById('password');
-        const bgMusic = document.getElementById('bg-music');
-        let musicPlayed = false;
-
-        function playMusic() {
-            if (!musicPlayed) { bgMusic.volume=0.5; bgMusic.play().then(()=>musicPlayed=true).catch(()=>{}); }
-        }
-
-        passwordInput.addEventListener('keyup', function(e) {
-            playMusic();
-            if (e.key === 'Enter' || this.value.toLowerCase() === 'manoosh') {
-                if (this.value.toLowerCase() === 'manoosh') {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('main-content').style.display = 'block';
-                    launchConfetti(); 
-                    
-                    Swal.fire({
-                        title: 'Welcome Agent Manoosh',
-                        text: 'Decrypting Happiness Files...',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        showConfirmButton: false,
-                        background: '#1a1a1a', color: '#fff'
-                    });
-                } else {
-                    document.getElementById('error-msg').style.display = 'block';
                 }
             }
         });
